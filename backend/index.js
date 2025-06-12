@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const matchProducts = require('./utils/compareProducts');
 const scrapeBlinkit = require('./scrapers/blinkit'); 
 const fetchZeptoPrices = require('./scrapers/zepto');
 
@@ -27,6 +28,27 @@ app.post('/search/zepto', async (req, res) => {
   const results = await fetchZeptoPrices(query, pincode);
   res.json(results);
 });
+
+app.post('/search/compare', async (req, res) => {
+  const { query, pincode } = req.body;
+  if (!query || !pincode) {
+    return res.status(400).json({ error: 'Query and pincode required.' });
+  }
+
+  try {
+    const [blinkitData, zeptoData] = await Promise.all([
+      scrapeBlinkit(query, pincode),
+      fetchZeptoPrices(query, pincode),
+    ]);
+
+    const comparison = matchProducts(blinkitData, zeptoData);
+    res.json(comparison);
+  } catch (error) {
+    console.error('Comparison error:', error);
+    res.status(500).json({ error: 'Comparison failed.' });
+  }
+});
+
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

@@ -28,7 +28,7 @@ async function fetchZeptoPrices(query, pincode = "110078") {
     const locInput = 'input[type="text"]';
     await page.waitForSelector(locInput, { visible: true });
     await page.click(locInput, { clickCount: 3 });
-    await page.type(locInput, `${pincode} Dwarka`, { delay: 70 });
+    await page.type(locInput, `${pincode}`, { delay: 70 });
 
     const suggestion = '[data-testid="address-search-item"]';
     await page.waitForSelector(suggestion, { visible: true, timeout: 10000 });

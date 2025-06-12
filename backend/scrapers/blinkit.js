@@ -47,9 +47,14 @@ async function scrapeBlinkit(query, pincode = '110078') {
       const tiles = Array.from(document.querySelectorAll(sel));
 
       const firstRupee = nodes => {
-        for (const el of nodes) if (el.innerText?.includes('₹')) return el.innerText.trim();
+        for (const el of nodes) {
+            if (el.innerText?.includes('₹')) {
+            const match = el.innerText.match(/₹\d+/);
+            if (match) return match[0];
+            }
+        }
         return '';
-      };
+    };
 
       return tiles
         .map(tile => {

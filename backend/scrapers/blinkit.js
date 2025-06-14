@@ -26,6 +26,7 @@ async function scrapeBlinkit(query, pincode = '110078') {
     const closeSel = '[data-testid="close-popup"], .popup__close';
     if (await page.$(closeSel)) await page.click(closeSel);
 
+    //location
     const locInput =
       'input[name="select-locality"], input.LocationSearchBox__InputSelect-sc-1k8u6a6-0';
     await page.waitForSelector(locInput, { visible: true, timeout: 15000 });

@@ -5,7 +5,7 @@ const scrapeBlinkit = require('./scrapers/blinkit');
 const fetchZeptoPrices = require('./scrapers/zepto');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: '*' }));   // listen to every / port
 app.use(express.json());
 
 app.post('/search/blinkit', async (req, res) => {

@@ -16,22 +16,18 @@ export default function Home() {
 
     setLoading(true);
     try {
-      const { blinkit, zepto } = await fetchComparison(query, pincode);
+        const data = await fetchComparison(query, pincode);
 
-      const res = await fetch("http://localhost:3000/search/compare", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blinkit, zepto }),
-      });
+        if (!Array.isArray(data)) throw new Error("Invalid response format");
 
-      const data = await res.json();
-      setResults(data);
+        setResults(data);
     } catch (err) {
-      alert("Error fetching data");
-      console.error(err);
+        alert("Error fetching data");
+        console.error(err);
+        setResults([]); // avoid .map crash
     }
     setLoading(false);
-  };
+    };
 
   return (
     <div className="max-w-4xl mx-auto py-6">

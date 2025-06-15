@@ -1,0 +1,55 @@
+const puppeteer = require('puppeteer');
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+async function swiggyScrape(query){
+  const browser = await puppeteer.launch({
+      headless: false,
+      args: ['--no-sandbox', '--disable-setuid-sandbox','--use-fake-ui-for-media-stream',],
+      defaultViewport: { width: 1280, height: 800 }
+    });
+  const context = browser.defaultBrowserContext();
+  await context.overridePermissions("https://www.swiggy.com", ["geolocation"]);
+  const page = await browser.newPage();
+  await page.setUserAgent(
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+  );
+  await page.setGeolocation({ latitude:28.5684 , longitude:77.2416 });
+  try{
+    await page.goto('https://www.swiggy.com/instamart',{ waitUntil: 'networkidle2' });
+    await page.waitForSelector('[data-testid="set-gps-button"]', { visible: true });
+    await page.click('[data-testid="set-gps-button"]');
+    
+  }catch{}
+  await delay(2000); // Give time for the tooltip to appear
+  await page.waitForFunction(() => {
+  const tooltip = document.querySelector('[data-testid="re-check-address-tooltip"]');
+  const closeBtn = tooltip?.querySelector('[role="button"]');
+  return !!closeBtn;
+});
+
+await page.evaluate(() => {
+  const tooltip = document.querySelector('[data-testid="re-check-address-tooltip"]');
+  const closeBtn = tooltip?.querySelector('[role="button"]');
+  closeBtn?.click();
+});
+
+await page.waitForSelector('div._1AaZg',{visible:true});
+await page.click('div._1AaZg');
+await delay(2000);
+await page.waitForSelector('[data-testid="search-page-header-search-bar-input"]', { visible: true });
+
+await page.type('[data-testid="search-page-header-search-bar-input"]', query);
+await page.keyboard.press('Enter');
+
+await page.waitForSelector('div._179Mx',{visible:true});
+await page.evaluate(()=>{
+  const container=document.querySelectorAll('[data-testid="default_container_ux4"]');
+  console.log(container);
+})
+
+
+
+
+}
+
+module.exports= swiggyScrape;

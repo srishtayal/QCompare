@@ -3,10 +3,15 @@ const cors = require('cors');
 const matchProducts = require('./utils/compareProducts');
 const scrapeBlinkit = require('./scrapers/blinkit'); 
 const fetchZeptoPrices = require('./scrapers/zepto');
+const swiggyScrape= require('./scrapers/instamart');
 
 const app = express();
-app.use(cors({ origin: '*' }));   // listen to every / port
+app.use(cors());   // listen to every / port
 app.use(express.json());
+app.post('/search/swiggy',async(req,res)=>{
+  const query=req.body.query;
+  const results=await swiggyScrape(query);
+})
 
 app.post('/search/blinkit', async (req, res) => {
   const { query, pincode } = req.body;
@@ -50,5 +55,5 @@ app.post('/search/compare', async (req, res) => {
 });
 
 
-const PORT = 5000;
+const PORT = 3000;
 app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));

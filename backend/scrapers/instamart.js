@@ -33,6 +33,8 @@ await page.evaluate(() => {
   closeBtn?.click();
 });
 
+
+
 await page.waitForSelector('div._1AaZg',{visible:true});
 await page.click('div._1AaZg');
 await delay(2000);
@@ -42,10 +44,24 @@ await page.type('[data-testid="search-page-header-search-bar-input"]', query);
 await page.keyboard.press('Enter');
 
 await page.waitForSelector('div._179Mx',{visible:true});
-await page.evaluate(()=>{
-  const container=document.querySelectorAll('[data-testid="default_container_ux4"]');
-  console.log(container);
-})
+
+const products = await page.evaluate(() => {
+  const items = Array.from(document.querySelectorAll('[data-testid="default_container_ux4"]'));
+  
+  return items.map(item => {
+    const name = item.querySelector('.novMV')?.innerText || '';
+    const img = item.querySelector('img')?.src || '';
+    const quantity = item.querySelector('.FqnWn')?.innerText || '';
+    const delivery = item.querySelector('.sc-aXZVg.cwTvVs.GOJ8s')?.innerText || '';
+    const price = item.querySelector('[data-testid="item-mrp-price"]')?.innerText || '';
+    const offer = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
+    const description = item.querySelector('[data-testid="reason-to-buy-short-description"]')?.innerText || '';
+
+    return { name, img, quantity, delivery, price, offer, description };
+  });
+});
+
+return products;
 
 
 

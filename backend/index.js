@@ -11,6 +11,7 @@ app.use(express.json());
 app.post('/search/swiggy',async(req,res)=>{
   const query=req.body.query;
   const results=await swiggyScrape(query);
+  res.json(results);
 })
 
 app.post('/search/blinkit', async (req, res) => {

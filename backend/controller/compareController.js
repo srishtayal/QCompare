@@ -1,14 +1,16 @@
 const scrapeBlinkit = require('../scrapers/blinkit');
 const fetchZeptoPrices = require('../scrapers/zepto');
+const swiggyScrape= require('../scrapers/instamart');
 // swiggy - to be added
 
 async function comparePrices(query, pincode = '110078') {
-    const [blinkit, zepto] = await Promise.all([
+    const [blinkit, zepto, swiggy] = await Promise.all([
         scrapeBlinkit(query, pincode),
-        fetchZeptoPrices(query, pincode)
+        fetchZeptoPrices(query, pincode),
+        swiggyScrape(query)
     ]);
 
-    return { blinkit, zepto };
+    return { blinkit, zepto, swiggy };
 }
 
 module.exports = comparePrices;

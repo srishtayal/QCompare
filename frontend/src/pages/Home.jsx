@@ -18,7 +18,7 @@ export default function Home() {
     try {
       const { blinkit, zepto } = await fetchComparison(query, pincode);
 
-      const res = await fetch("http://localhost:5000/search/compare", {
+      const res = await fetch("http://localhost:3000/search/compare", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ blinkit, zepto }),

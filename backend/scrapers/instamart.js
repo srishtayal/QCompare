@@ -3,7 +3,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function swiggyScrape(query){
   const browser = await puppeteer.launch({
-      headless: false,
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox','--use-fake-ui-for-media-stream',],
       defaultViewport: { width: 1280, height: 800 }
     });
@@ -44,24 +44,34 @@ await page.type('[data-testid="search-page-header-search-bar-input"]', query);
 await page.keyboard.press('Enter');
 
 await page.waitForSelector('div._179Mx',{visible:true});
+await page.evaluate(() => {
+  window.scrollBy(0, window.innerHeight); // small scroll to trigger image load
+});
+await delay(500);
 
 const products = await page.evaluate(() => {
   const items = Array.from(document.querySelectorAll('[data-testid="default_container_ux4"]'));
   
   return items.map(item => {
     const name = item.querySelector('.novMV')?.innerText || '';
-    const img = item.querySelector('img')?.src || '';
+    const productImg = Array.from(item.querySelectorAll('img'))
+      .map(img => img.src)
+      .find(src => src.includes('media-assets.swiggy.com') && !src.includes('instamart-media-assets')) || null;
     const quantity = item.querySelector('.FqnWn')?.innerText || '';
     const delivery = item.querySelector('.sc-aXZVg.cwTvVs.GOJ8s')?.innerText || '';
     const price = item.querySelector('[data-testid="item-mrp-price"]')?.innerText || '';
     const offer = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
     const description = item.querySelector('[data-testid="reason-to-buy-short-description"]')?.innerText || '';
 
-    return { name, img, quantity, delivery, price, offer, description };
+    return { name, productImg, quantity, delivery, price, offer, description };
   });
 });
 
+await browser.close();
+
 return products;
+
+
 
 
 

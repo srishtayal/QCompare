@@ -1,4 +1,4 @@
-const stringSimilarity = require('string-similarity');              // npm package[2]
+const stringSimilarity = require('string-similarity');              
 
 function normalize(text) {
   return text.toLowerCase()                                         // case-fold[1]
@@ -7,32 +7,24 @@ function normalize(text) {
              .trim();                                               // final tidy[1]
 }
 
-/**
- * Merge two product arrays and propagate the out-of-stock flag.
- *
- * @param {Array} blinkit – products from Blinkit, each with `outOfStock`
- * @param {Array} zepto   – products from Zepto,   each with `outOfStock`
- * @returns {Array}       – unified list ready for the UI
- */
 function matchProducts(blinkit, zepto) {
-  const matchedZeptoIndices = new Set();                            // track hits[1]
+  const matchedZeptoIndices = new Set();                           
 
-  /* ---------- Blinkit-anchored matching ---------- */             // same logic[2]
   const comparisons = blinkit.map(b => {
     const matches = zepto
       .map((z, index) => ({
         ...z,
-        similarity: stringSimilarity.compareTwoStrings(             // score[2]
+        similarity: stringSimilarity.compareTwoStrings(             
           normalize(b.name),
           normalize(z.name)
         ),
         index
       }))
-      .filter(z => z.similarity > 0.65)                             // threshold[1]
-      .sort((a, b) => b.similarity - a.similarity);                 // best first[1]
+      .filter(z => z.similarity > 0.65)                             
+      .sort((a, b) => b.similarity - a.similarity);                
 
     const bestMatch = matches[0];
-    if (bestMatch) matchedZeptoIndices.add(bestMatch.index);        // remember[2]
+    if (bestMatch) matchedZeptoIndices.add(bestMatch.index);       
 
     return {
       name:     b.name,
@@ -41,20 +33,19 @@ function matchProducts(blinkit, zepto) {
         price:        b.price,
         link:         b.link,
         deliveryTime: b.deliveryTime,
-        outOfStock:   b.outOfStock                                  // NEW[1]
+        outOfStock:   b.outOfStock                                
       },
       zepto: bestMatch
         ? {
             price:        bestMatch.price,
             link:         bestMatch.link || '',
             deliveryTime: bestMatch.deliveryTime,
-            outOfStock:   bestMatch.outOfStock                      // NEW[2]
+            outOfStock:   bestMatch.outOfStock
           }
         : null
     };
   });
 
-  /* ---------- add unmatched Zepto items ---------- */             // unchanged[1]
   const unmatchedZepto = zepto
     .map((z, index) => ({ ...z, index }))
     .filter(z => !matchedZeptoIndices.has(z.index))
@@ -66,11 +57,11 @@ function matchProducts(blinkit, zepto) {
         price:        z.price,
         link:         z.link || '',
         deliveryTime: z.deliveryTime,
-        outOfStock:   z.outOfStock                                  // NEW[2]
+        outOfStock:   z.outOfStock                                
       }
     }));
 
-  return [...comparisons, ...unmatchedZepto];                       // final merge[1]
+  return [...comparisons, ...unmatchedZepto];                    
 }
 
-module.exports = matchProducts;                                     // CommonJS export[1]
+module.exports = matchProducts;                                 

@@ -6,32 +6,39 @@ export default function ProductCard({ name, quantity, blinkit, zepto }) {
   );
 
   return (
-    <div className="border rounded p-4 mb-4 flex flex-col md:flex-row
-                    justify-between gap-4 bg-white shadow">
+    <div className="border rounded p-4 mb-4 flex flex-col md:flex-row justify-between gap-4 bg-white shadow">
       <div>
         <p className="font-semibold text-lg">{name}</p>
         <p className="text-sm text-gray-600">{quantity}</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center">
-        {/* -------  Blinkit  ‑------ */}
+
         {blinkit && (
           <div className="flex items-center gap-2">
             {platformLogo('/blinkit.png', blinkit.link)}
-            <p className="text-sm">₹{blinkit.price}</p>
-            <span className="text-xs text-gray-500">{blinkit.deliveryTime}</span>
+
+            {blinkit.outOfStock ? (
+              <span className="text-xs font-semibold text-red-500">
+                Out&nbsp;of&nbsp;Stock
+              </span>
+            ) : (
+              <>
+                <p className="text-sm">₹{blinkit.price}</p>
+                <span className="text-xs text-gray-500">
+                  {blinkit.deliveryTime}
+                </span>
+              </>
+            )}
           </div>
         )}
 
-        {/* -------  Zepto  ‑------ */}
         {zepto && (
           <div className="flex items-center gap-2">
             {platformLogo('/zepto.png', zepto.link)}
-
-            {/* show price or the “out of stock” badge */}
             {zepto.outOfStock ? (
               <span className="text-xs font-semibold text-red-500">
-                Out of Stock
+                Out&nbsp;of&nbsp;Stock
               </span>
             ) : (
               <>

@@ -54,22 +54,33 @@ async function fetchZeptoPrices(query, pincode = "110078") {
     const productCard = "[data-testid='product-card']";
     await page.waitForSelector(productCard, { timeout: 30000 });
 
-    const products = await page.$$eval("[data-testid='product-card']", cards => {
-      return cards.map(card => {
-        const getText = (selector) => card.querySelector(selector)?.innerText.trim() || "";
-        const getPrice = (selector) => card.querySelector(selector)?.innerText.match(/₹\d+/)?.[0] || "";
-        const getImage = () => card.querySelector("img")?.src || "";
+    const products = await page.$$eval('[data-testid="product-card"]', cards => {
+  return cards.map(card => {
+    const txt = sel =>
+      (card.querySelector(sel)?.textContent || '')
+        .replace(/[\u200B-\u200D\u00A0]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
 
-        return {
-          name: getText("[data-testid='product-card-name']"),
-          quantity: getText("[data-testid='product-card-quantity']"),
-          price: getPrice("[data-testid='product-card-price']"),
-          originalPrice: getPrice("p.line-through"),
-          deliveryTime: getText("span.font-extrabold").replace(/\s+/g, " "),
-          image: getImage()
-        };
-      });
-    });
+    const price = sel =>
+      card.querySelector(sel)?.textContent.match(/₹\s?\d+/)?.[0] || '';
+
+    const img = () => {
+      const i = card.querySelector('img');
+      return i?.currentSrc || i?.src || '';
+    };
+
+    return {
+      name:           txt('[data-testid="product-card-name"]'),
+      quantity:       txt('[data-testid="product-card-quantity"]'),
+      price:          price('[data-testid="product-card-price"]'),
+      originalPrice:  price('p.line-through'),
+      deliveryTime: txt('[data-testid="delivery-time"] span.font-extrabold') || txt('p.block.font-body.text-xs'),
+      image:          img()
+    };
+  }).filter(p => p.name && p.price);
+});
+
 
 
     return products.filter(p => p.name && p.price).slice(0, 10);

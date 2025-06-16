@@ -15,47 +15,52 @@ async function scrapeBlinkit(query, pincode = '110078') {
   );
 
   try {
+    /* ---------- open home & handle pop-ups ---------- */
     await page.goto('https://www.blinkit.com/', { waitUntil: 'domcontentloaded' });
 
     const continueBtn = 'div.DownloadAppModal__ContinueLink-sc-1wef47t-12';
-    try {
-      await page.waitForSelector(continueBtn, { timeout: 6000 });
-      await page.click(continueBtn);
-    } catch {}
+    await page.$(continueBtn).then(el => el?.click().catch(() => null));
 
     const closeSel = '[data-testid="close-popup"], .popup__close';
-    if (await page.$(closeSel)) await page.click(closeSel);
+    await page.$(closeSel).then(el => el?.click().catch(() => null));
 
-    //location
+    /* ---------- set location ---------- */
     const locInput =
       'input[name="select-locality"], input.LocationSearchBox__InputSelect-sc-1k8u6a6-0';
-    await page.waitForSelector(locInput, { visible: true, timeout: 15000 });
+    await page.waitForSelector(locInput, { visible: true, timeout: 15_000 });
     await page.type(locInput, pincode, { delay: 60 });
 
-    const firstSuggestion = 'div.LocationSearchList__LocationListContainer-sc-93rfr7-0';
-    await page.waitForSelector(firstSuggestion, { visible: true, timeout: 10000 });
+    const firstSuggestion =
+      'div.LocationSearchList__LocationListContainer-sc-93rfr7-0';
+    await page.waitForSelector(firstSuggestion, { visible: true, timeout: 10_000 });
     await page.$eval(firstSuggestion, el => el.click());
 
-    await delay(3000);
+    await delay(2_000);
 
+    /* ---------- search ---------- */
     const searchURL = `https://www.blinkit.com/s/?q=${encodeURIComponent(query)}`;
     await page.goto(searchURL, { waitUntil: 'networkidle2' });
 
     const tileSel = 'div[role="button"][id]';
-    await page.waitForSelector(tileSel, { timeout: 30000 });
+    await page.waitForSelector(tileSel, { timeout: 30_000 });
 
-    const products = await page.evaluate(sel => {
-      const tiles = Array.from(document.querySelectorAll(sel));
-
+    /* ---------- scrape tiles ---------- */
+    const products = await page.$$eval(tileSel, tiles => {
       const firstRupee = nodes => {
         for (const el of nodes) {
-            if (el.innerText?.includes('₹')) {
-            const match = el.innerText.match(/₹\d+/);
-            if (match) return match[0];
-            }
+          if (el.innerText?.includes('₹')) {
+            const m = el.innerText.match(/₹\s?\d+/);
+            if (m) return m[0];
+          }
         }
         return '';
-    };
+      };
+
+      const pickImage = img =>
+        img?.currentSrc ||                                      // after lazy-load
+        img?.getAttribute('src') ||                             // basic src
+        img?.getAttribute('data-src') ||                        // lazy src attr
+        (img?.getAttribute('srcset') || '').split(' ')[0] || ''; // first srcset URL
 
       return tiles
         .map(tile => {
@@ -65,28 +70,32 @@ async function scrapeBlinkit(query, pincode = '110078') {
             '';
 
           const quantity =
-            tile.querySelector('div.tw-text-200.tw-font-medium')?.innerText.trim() || '';
+            tile.querySelector('div.tw-text-200.tw-font-medium')?.innerText.trim() ||
+            '';
 
           const price = firstRupee(tile.querySelectorAll('div, span, p'));
 
           let originalPrice = '';
-          const strike = tile.querySelector('del,s,strike,span.line-through,div.line-through');
-          if (strike && strike.innerText.includes('₹')) originalPrice = strike.innerText.trim();
+          const strike = tile.querySelector(
+            'del,s,strike,span.line-through,div.line-through'
+          );
+          if (strike && strike.innerText.includes('₹'))
+            originalPrice = strike.innerText.trim();
 
           const deliveryTime =
-            tile.querySelector('div.tw-text-050.tw-font-bold.tw-uppercase')?.innerText
-              .trim()
+            tile
+              .querySelector('div.tw-text-050.tw-font-bold.tw-uppercase')
+              ?.innerText.trim()
               .replace(/\s+/g, ' ') || '';
 
-          const link =
-            tile.tagName.toLowerCase() === 'a'
-              ? tile.href
-              : tile.querySelector('a')?.href || '';
+          const link = tile.querySelector('a[href]')?.href || '';
 
-          return { name, quantity, price, originalPrice, deliveryTime, link };
+          const image = pickImage(tile.querySelector('img'));
+
+          return { name, quantity, price, originalPrice, deliveryTime, link, image };
         })
         .filter(p => p.name && p.price);
-    }, tileSel);
+    });
 
     const topPdt = products.slice(0, 10);
     await browser.close();

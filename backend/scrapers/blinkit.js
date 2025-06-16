@@ -2,7 +2,7 @@ const puppeteer = require('puppeteer');
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function scrapeBlinkit(query, pincode = '110078') {
+async function scrapeBlinkit(query, pincode = '110078', maxProducts = 10) {  
   const browser = await puppeteer.launch({
     headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -16,7 +16,7 @@ async function scrapeBlinkit(query, pincode = '110078') {
 
   try {
     /* ---------- open home & handle pop-ups ---------- */
-    await page.goto('https://www.blinkit.com/', { waitUntil: 'domcontentloaded' });
+    await page.goto('https://www.blinkit.com/', { waitUntil: 'domcontentloaded' });     // puppeteer navigation [3]
 
     const continueBtn = 'div.DownloadAppModal__ContinueLink-sc-1wef47t-12';
     await page.$(continueBtn).then(el => el?.click().catch(() => null));
@@ -55,23 +55,23 @@ async function scrapeBlinkit(query, pincode = '110078') {
         }
         return '';
       };
-
       const pickImage = img =>
-        img?.currentSrc ||                                      // after lazy-load
-        img?.getAttribute('src') ||                             // basic src
-        img?.getAttribute('data-src') ||                        // lazy src attr
-        (img?.getAttribute('srcset') || '').split(' ')[0] || ''; // first srcset URL
+        img?.currentSrc ||
+        img?.getAttribute('src') ||
+        img?.getAttribute('data-src') ||
+        (img?.getAttribute('srcset') || '').split(' ')[0] || '';
 
       return tiles
         .map(tile => {
+          const text = tile.innerText.toLowerCase();
+          const outOfStock = text.includes('out of stock');
+
           const name =
             tile.querySelector('div.tw-text-300.tw-font-semibold')?.innerText.trim() ||
-            tile.querySelector('[data-testid="product-title"]')?.innerText.trim() ||
-            '';
+            tile.querySelector('[data-testid="product-title"]')?.innerText.trim() || '';
 
           const quantity =
-            tile.querySelector('div.tw-text-200.tw-font-medium')?.innerText.trim() ||
-            '';
+            tile.querySelector('div.tw-text-200.tw-font-medium')?.innerText.trim() || '';
 
           const price = firstRupee(tile.querySelectorAll('div, span, p'));
 
@@ -88,21 +88,28 @@ async function scrapeBlinkit(query, pincode = '110078') {
               ?.innerText.trim()
               .replace(/\s+/g, ' ') || '';
 
-          const link = tile.querySelector('a[href]')?.href || '';
+          const link   = tile.querySelector('a[href]')?.href || '';
+          const image  = pickImage(tile.querySelector('img'));
 
-          const image = pickImage(tile.querySelector('img'));
-
-          return { name, quantity, price, originalPrice, deliveryTime, link, image };
+          return {
+            name,
+            quantity,
+            price,
+            originalPrice,
+            deliveryTime,
+            link,
+            image,
+            outOfStock
+          };
         })
-        .filter(p => p.name && p.price);
+        .filter(p => p.name && (p.price || p.outOfStock));
     });
 
-    const topPdt = products.slice(0, 10);
     await browser.close();
-    return topPdt;
-  } catch (err) {
+    return products.slice(0, maxProducts);                                        
+  } catch (e) {
     await browser.close();
-    throw err;
+    throw e;
   }
 }
 

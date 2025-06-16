@@ -60,25 +60,30 @@ async function fetchZeptoPrices(query, pincode = "110078") {
       (card.querySelector(sel)?.textContent || '')
         .replace(/[\u200B-\u200D\u00A0]/g, ' ')
         .replace(/\s+/g, ' ')
-        .trim();
+        .trim();                                                // [#]
 
     const price = sel =>
-      card.querySelector(sel)?.textContent.match(/₹\s?\d+/)?.[0] || '';
+      card.querySelector(sel)?.textContent.match(/₹\s?\d+/)?.[0] || ''; // [#]
 
     const img = () => {
       const i = card.querySelector('img');
-      return i?.currentSrc || i?.src || '';
+      return i?.currentSrc || i?.src || '';                     // [#]
     };
 
+    /* check whether the banner that says “Out of Stock” exists */
+    const outOfStock = card.innerText.toLowerCase().includes('out of stock'); // [#]
+
     return {
-      name:           txt('[data-testid="product-card-name"]'),
-      quantity:       txt('[data-testid="product-card-quantity"]'),
-      price:          price('[data-testid="product-card-price"]'),
-      originalPrice:  price('p.line-through'),
-      deliveryTime: txt('[data-testid="delivery-time"] span.font-extrabold') || txt('p.block.font-body.text-xs'),
-      image:          img()
+      name:          txt('[data-testid="product-card-name"]'),
+      quantity:      txt('[data-testid="product-card-quantity"]'),
+      price:         price('[data-testid="product-card-price"]'),
+      originalPrice: price('p.line-through'),
+      deliveryTime:  txt('[data-testid="delivery-time"] span.font-extrabold') ||
+                     txt('p.block.font-body.text-xs'),
+      image:         img(),
+      outOfStock                                                 // [#]
     };
-  }).filter(p => p.name && p.price);
+  });
 });
 
 

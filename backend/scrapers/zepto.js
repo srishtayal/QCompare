@@ -54,10 +54,26 @@ async function fetchZeptoPrices(query, pincode = "110078") {
     const productCard = "[data-testid='product-card']";
     await page.waitForSelector(productCard, { timeout: 30000 });
 
+    // const products = await page.$$eval("[data-testid='product-card']", cards => {
+    //   return cards.map(card => {
+    //     const getText = (selector) => card.querySelector(selector)?.innerText.trim() || "";
+    //     const getPrice = (selector) => card.querySelector(selector)?.innerText.match(/₹\d+/)?.[0] || "";
+
+    //     return {
+    //       name: getText("[data-testid='product-card-name']"),
+    //       quantity: getText("[data-testid='product-card-quantity']"),
+    //       price: getPrice("[data-testid='product-card-price']"),
+    //       originalPrice: getPrice("p.line-through"),
+    //       deliveryTime: getText("span.font-extrabold").replace(/\s+/g, " "),
+    //     };
+    //   });
+    // });
+
     const products = await page.$$eval("[data-testid='product-card']", cards => {
       return cards.map(card => {
         const getText = (selector) => card.querySelector(selector)?.innerText.trim() || "";
         const getPrice = (selector) => card.querySelector(selector)?.innerText.match(/₹\d+/)?.[0] || "";
+        const getImage = () => card.querySelector("img")?.src || "";
 
         return {
           name: getText("[data-testid='product-card-name']"),
@@ -65,9 +81,11 @@ async function fetchZeptoPrices(query, pincode = "110078") {
           price: getPrice("[data-testid='product-card-price']"),
           originalPrice: getPrice("p.line-through"),
           deliveryTime: getText("span.font-extrabold").replace(/\s+/g, " "),
+          image: getImage()
         };
       });
     });
+
 
     return products.filter(p => p.name && p.price).slice(0, 10);
   } catch (err) {

@@ -51,8 +51,13 @@ await delay(500);
 
 const products = await page.evaluate(() => {
   const items = Array.from(document.querySelectorAll('[data-testid="default_container_ux4"]'));
+
+  const filteredItems = items.filter(item => {
+  const adBadge = item.querySelector('[data-testid="badge-wrapper"]');
+  return !(adBadge && adBadge.innerText.trim() === "Ad");
+  });
   
-  return items.map(item => {
+  return filteredItems.map(item => {
     const name = item.querySelector('.novMV')?.innerText || '';
     const productImg = Array.from(item.querySelectorAll('img'))
       .map(img => img.src)
@@ -61,9 +66,10 @@ const products = await page.evaluate(() => {
     const delivery = item.querySelector('.sc-aXZVg.cwTvVs.GOJ8s')?.innerText || '';
     const price = item.querySelector('[data-testid="item-mrp-price"]')?.innerText || '';
     const offer = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
-    const description = item.querySelector('[data-testid="reason-to-buy-short-description"]')?.innerText || '';
+    const isSoldOut = !!item.querySelector('[data-testid="sold-out"]');
+    const availability = isSoldOut ? 'Sold Out' : 'Available';
 
-    return { name, productImg, quantity, delivery, price, offer, description };
+    return { name, productImg, quantity, delivery, price, offer, availability };
   });
 });
 

@@ -50,6 +50,11 @@ await page.evaluate(() => {
 await delay(500);
 
 const products = await page.evaluate(() => {
+  function generateSwiggySearchURL(productName) {
+  const encodedQuery = encodeURIComponent(productName).replace(/%20/g, '+');
+  return `https://www.swiggy.com/instamart/search?custom_back=true&query=${encodedQuery}`;
+  }
+  
   const items = Array.from(document.querySelectorAll('[data-testid="default_container_ux4"]'));
 
   const filteredItems = items.filter(item => {
@@ -66,10 +71,11 @@ const products = await page.evaluate(() => {
     const delivery = item.querySelector('.sc-aXZVg.cwTvVs.GOJ8s')?.innerText || '';
     const price = item.querySelector('[data-testid="item-mrp-price"]')?.innerText || '';
     const offer = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
+    const link=generateSwiggySearchURL(name);
     const isSoldOut = !!item.querySelector('[data-testid="sold-out"]');
     const availability = isSoldOut ? 'Sold Out' : 'Available';
 
-    return { name, productImg, quantity, delivery, price, offer, availability };
+    return { name, productImg, quantity, delivery, price, offer,link, availability };
   });
 });
 

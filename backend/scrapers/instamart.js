@@ -20,7 +20,7 @@ async function swiggyScrape(query){
     await page.click('[data-testid="set-gps-button"]');
     
   }catch{}
-  await delay(2000); // Give time for the tooltip to appear
+  await delay(500); // Give time for the tooltip to appear
   await page.waitForFunction(() => {
   const tooltip = document.querySelector('[data-testid="re-check-address-tooltip"]');
   const closeBtn = tooltip?.querySelector('[role="button"]');
@@ -37,7 +37,7 @@ await page.evaluate(() => {
 
 await page.waitForSelector('div._1AaZg',{visible:true});
 await page.click('div._1AaZg');
-await delay(2000);
+await delay(200);
 await page.waitForSelector('[data-testid="search-page-header-search-bar-input"]', { visible: true });
 
 await page.type('[data-testid="search-page-header-search-bar-input"]', query);
@@ -47,7 +47,14 @@ await page.waitForSelector('div._179Mx',{visible:true});
 await page.evaluate(() => {
   window.scrollBy(0, window.innerHeight); // small scroll to trigger image load
 });
-await delay(500);
+await page.evaluate(async () => {
+  const items = Array.from(document.querySelectorAll('[data-testid="default_container_ux4"]'));
+  for (const item of items) {
+    item.scrollIntoView({ behavior: 'instant', block: 'center' });
+    await new Promise(resolve => setTimeout(resolve, 100)); // let lazy image load
+  }
+});
+await delay(200);
 
 const products = await page.evaluate(() => {
   function generateSwiggySearchURL(productName) {

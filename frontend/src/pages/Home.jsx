@@ -4,15 +4,35 @@ import SearchBar from "../components/SearchBar";
 import FrequentlySearched from "../components/FrequentlySearched";
 import ProductCard from "../components/ProductCard";
 import { fetchComparison } from "../api";
+import { ShootingStars } from "../components/ui/shooting-stars";
+import { ContainerImageFlip } from "../components/ui/container-text-flip";
+import LoadingScreen from "../components/ui/loadingScreen";
 
 export default function Home() {
   const [pincode, setPincode] = useState("");
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [compare,setCompare]=useState(false)
+
+  const storeLogos = [
+    {
+      src: "../icons/instamart.png",
+      alt: "Instamart"
+    },
+    {
+      src: "../icons/zepto.png",
+      alt: "Zepto"
+    },
+    {
+      src: "../icons/blinkit.png",
+      alt: "Blinkit"
+    }
+  ];
 
   const onSearch = async () => {
     if (!pincode || !query) return alert("Enter both query and pincode");
+    setCompare(true);
 
     setLoading(true);
     try {
@@ -30,16 +50,50 @@ export default function Home() {
     };
 
   return (
-    <div className="max-w-4xl mx-auto py-6">
-      <h1 className="text-3xl font-bold mb-4 text-center">QCompare 🍕</h1>
-      <LocationSelector setPincode={setPincode} />
-      <SearchBar query={query} setQuery={setQuery} onSearch={onSearch} />
-      <FrequentlySearched onSelect={(q) => { setQuery(q); onSearch(); }} />
+    <div className="relative w-full min-h-screen overflow-hidden bg-[#0f1117]">
+      <ShootingStars className="absolute inset-0 z-0" />
+      <div className="flex flex-col min-h-screen">
+      <div className="w-full  p-4 z-20 relative flex justify-center items-end">
+        <LocationSelector setPincode={setPincode}/>
+        <SearchBar query={query} setQuery={setQuery} onSearch={onSearch}/>
+      </div>
+      {!compare?<div className="relative z-10 max-w-4xl mx-auto py-6 flex-1 flex justify-center items-center min-w-full  ">
+        <div className="mt-[-100px]">
+          <h1 className="text-8xl font-extrabold  text-[#ffdd00] ">QCompare</h1>
+          <div className=" flex justify-between mt-4  ">
+            <h4 className="text-2xl font-bold text-white mt-3 ml-2">We find you the best prices across</h4>
+            <ContainerImageFlip
+              images={[
+                "/logos/instamart.png",
+                "/logos/zepto.jpeg",
+                "/logos/blinkit.png"
+              ]}
+              interval={2500}
+              imgClassName="h-16 w-16 object-contain rounded-xl"
+            />
+          </div>
+          
+        </div>
+      
+      
+      </div> : loading ?
+        <LoadingScreen/>
+      
+        :
+        (
+        results.map((item, i) => <ProductCard key={i} {...item} />)
+        )
+      }
+      
+      </div>
+    </div>
+  );
+}
+{/*
+      
       {loading ? (
         <p className="text-center mt-10">Loading...</p>
       ) : (
         results.map((item, i) => <ProductCard key={i} {...item} />)
-      )}
-    </div>
-  );
-}
+      )} */}
+

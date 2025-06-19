@@ -6,7 +6,7 @@ export default function ProductCard({ name, quantity, blinkit, zepto }) {
   );
 
   return (
-    <div className="border rounded p-4 mb-4 flex flex-col md:flex-row justify-between gap-4 bg-white shadow">
+    <div className="relative z-10 border rounded p-4 mb-4 flex flex-col md:flex-row justify-between gap-4 bg-white shadow">
       <div>
         <p className="font-semibold text-lg">{name}</p>
         <p className="text-sm text-gray-600">{quantity}</p>

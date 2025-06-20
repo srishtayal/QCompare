@@ -24,7 +24,7 @@ async function fetchZeptoPrices(query, pincode = "110078") {
     await page.goto("https://www.zeptonow.com/", { waitUntil: "domcontentloaded" });
 
     // Step 2: Click 'Select Location'
-    await page.waitForSelector('button[aria-label="Select Location"]', { timeout: 15000 });
+    await page.waitForSelector('button[aria-label="Select Location"]', { timeout: 15000 }, { visible: true });
     await page.click('button[aria-label="Select Location"]');
 
     // Step 3: Type in pincode

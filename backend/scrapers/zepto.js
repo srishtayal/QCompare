@@ -4,7 +4,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function fetchZeptoPrices(query, pincode = "110078") {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",

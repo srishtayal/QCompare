@@ -1,9 +1,26 @@
 const puppeteer = require('puppeteer');
+const dotenv=require('dotenv');
+const axios= require('axios');
+
+dotenv.config();
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function swiggyScrape(query){
+async function encodeToUTF8(query) {
+  return encodeURIComponent(query);
+}
+
+
+
+async function swiggyScrape(query,pincode){
+  
+  const encodedQuery= await encodeToUTF8(`"${pincode}"`);
+  const res= await axios.get(`https://geocode.maps.co/search?q=${encodedQuery}&api_key=${process.env.API}`);
+  const latitude= Number(res.data[0].lat);
+  const longitude=Number(res.data[0].lon);
+
+
   const browser = await puppeteer.launch({
-      headless: true,
+      headless: false,
       args: ['--no-sandbox', '--disable-setuid-sandbox','--use-fake-ui-for-media-stream',],
       defaultViewport: { width: 1280, height: 800 }
     });
@@ -13,7 +30,7 @@ async function swiggyScrape(query){
   await page.setUserAgent(
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
   );
-  await page.setGeolocation({ latitude:28.5684 , longitude:77.2416 });
+  await page.setGeolocation({latitude:latitude, longitude:longitude});
   try{
     await page.goto('https://www.swiggy.com/instamart',{ waitUntil: 'networkidle2' });
     await page.waitForSelector('[data-testid="set-gps-button"]', { visible: true });

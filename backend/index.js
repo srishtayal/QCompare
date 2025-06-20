@@ -9,9 +9,18 @@ const app = express();
 app.use(cors());   // listen to every / port
 app.use(express.json());
 app.post('/search/swiggy',async(req,res)=>{
-  const query=req.body.query;
-  const results=await swiggyScrape(query);
-  res.json(results);
+  const {query,pincode}=req.body;
+
+  if (!query || !pincode) {
+    return res.status(400).json({ error: 'Query and pincode required.' });
+  }
+  try {
+    const results = await swiggyScrape(query, pincode);
+    res.json(results);
+  } catch (error) {
+    console.error('Error scraping Blinkit:', error);
+    res.status(500).json({ error: 'Failed to fetch data' });
+  }
 })
 
 app.post('/search/blinkit', async (req, res) => {

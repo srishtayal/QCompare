@@ -11,7 +11,7 @@ async function encodeToUTF8(query) {
 
 
 
-async function swiggyScrape(query,pincode){
+async function swiggyScrape(query, pincode){
   
   const encodedQuery= await encodeToUTF8(`"${pincode}"`);
   const res= await axios.get(`https://geocode.maps.co/search?q=${encodedQuery}&api_key=${process.env.API}`);

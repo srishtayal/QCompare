@@ -53,15 +53,15 @@ export default function Home() {
     <div className="relative w-full min-h-screen overflow-hidden bg-[#0f1117]">
       <ShootingStars className="absolute inset-0 z-0" />
       <div className="flex flex-col min-h-screen mt-8">
-      <div className="w-full  p-4 z-20 relative flex justify-center items-end">
-        <LocationSelector setPincode={setPincode}/>
-        <SearchBar query={query} setQuery={setQuery} onSearch={onSearch}/>
+      <div className="w-full p-4 z-20 relative flex flex-col sm:flex-row justify-center items-center sm:items-end sm:space-x-6 space-y-3 sm:space-y-0">
+        <LocationSelector setPincode={setPincode} />
+        <SearchBar query={query} setQuery={setQuery} onSearch={onSearch} />
       </div>
       {!compare?<div className="relative z-10 max-w-4xl mx-auto py-6 flex-1 flex justify-center items-center min-w-full  ">
-        <div className="mt-[-100px]">
-          <h1 className="text-8xl font-extrabold  text-[#ffdd00] ">QCompare</h1>
-          <div className=" flex justify-between mt-4  ">
-            <h4 className="text-2xl font-bold text-white mt-3 ml-2">We find you the best prices across</h4>
+        <div className="mt-[-100px] md:mt-[-100px]">
+          <h1 className="text-6xl md:text-8xl font-extrabold  text-[#ffdd00] text-center ">QCompare</h1>
+          <div className=" md:flex md:justify-between mt-4  ">
+            <h4 className="text-2xl font-bold text-white mt-3 ml-2 mb-6 text-center">We find you the best prices across</h4>
             <ContainerImageFlip
               images={[
                 "/logos/instamart.png",
@@ -69,7 +69,7 @@ export default function Home() {
                 "/logos/Blinkit.svg"
               ]}
               interval={2500}
-              imgClassName="h-16 w-16 object-contain rounded-xl"
+              imgClassName="h-20 w-20 md:h-16 md:w-16 object-contain rounded-xl"
             />
           </div>
           

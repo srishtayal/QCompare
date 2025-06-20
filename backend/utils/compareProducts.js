@@ -1,14 +1,6 @@
-/**
- * Compare three price arrays (Blinkit, Zepto, Swiggy) and return a merged list.
- * Each incoming item must have at least:
- *  { name, quantity, price, link, deliveryTime, outOfStock }
- *
- * npm i string-similarity
- */
 const stringSimilarity = require('string-similarity');
 
-const SIM_THRESHOLD = 0.65;          // 65 % name similarity → consider same product
-
+const SIM_THRESHOLD = 0.65;          
 const normalize = txt =>
   txt
     .toLowerCase()                   // case-fold

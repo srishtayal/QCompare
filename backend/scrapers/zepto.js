@@ -20,78 +20,109 @@ async function fetchZeptoPrices(query, pincode = "110078") {
   );
 
   try {
+    // Step 1: Load homepage
     await page.goto("https://www.zeptonow.com/", { waitUntil: "domcontentloaded" });
 
+    // Step 2: Click 'Select Location'
     await page.waitForSelector('button[aria-label="Select Location"]', { timeout: 15000 });
     await page.click('button[aria-label="Select Location"]');
 
+    // Step 3: Type in pincode
     const locInput = 'input[type="text"]';
     await page.waitForSelector(locInput, { visible: true });
     await page.click(locInput, { clickCount: 3 });
     await page.type(locInput, `${pincode}`, { delay: 70 });
 
+    // Step 4: Select address suggestion
     const suggestion = '[data-testid="address-search-item"]';
     await page.waitForSelector(suggestion, { visible: true, timeout: 10000 });
-    await page.$eval(suggestion, el => el.click());
+    await page.click(suggestion);
 
-    await page.waitForSelector('[data-testid="location-confirm-btn"]', { visible: true, timeout: 10000 });
-    await page.click('[data-testid="location-confirm-btn"]');
+    // Step 5: Confirm location
+    const confirmBtn = '[data-testid="location-confirm-btn"]';
+    await page.waitForSelector(confirmBtn, { visible: true, timeout: 10000 });
+    await page.click(confirmBtn);
 
+    // Step 6: Wait for location update
     await page.waitForNavigation({ waitUntil: "networkidle0" });
 
+    // Step 7: Click search bar
+    await page.waitForSelector('a[aria-label="Search for products"]', { visible: true });
     await page.click('a[aria-label="Search for products"]');
 
+    // Step 8: Type the query
     const searchInput = 'input[placeholder*="Search"]';
     await page.waitForSelector(searchInput, { visible: true, timeout: 15000 });
     await page.type(searchInput, query, { delay: 60 });
     await page.keyboard.press("Enter");
 
+    // Step 9: Wait for search response
     await page.waitForResponse(
       r => r.url().includes("/api/") && r.url().includes("/search") && r.status() === 200,
       { timeout: 30000 }
     );
 
+    // Step 10: Wait for product cards
     const productCard = "[data-testid='product-card']";
     await page.waitForSelector(productCard, { timeout: 30000 });
 
+    // Step 11: Extract products
     const products = await page.$$eval('[data-testid="product-card"]', cards => {
-  return cards.map(card => {
-    const txt = sel =>
-      (card.querySelector(sel)?.textContent || '')
-        .replace(/[\u200B-\u200D\u00A0]/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();                                               
+      const clean = s =>
+        (s || '')
+          .replace(/[\u200B-\u200D\u00A0]/g, ' ')
+          .replace(/\s+/g, ' ')
+          .trim();
 
-    const price = sel =>
-      card.querySelector(sel)?.textContent.match(/₹\s?\d+/)?.[0] || '';
+      const firstRs = s => {
+        const m = (s || '').match(/₹\s?\d[\d,.]*/);
+        return m ? m[0] : '';
+      };
 
-    const img = () => {
-      const i = card.querySelector('img');
-      return i?.currentSrc || i?.src || '';                 
-    };
+      return cards.map(card => {
+        const name = clean(card.querySelector('[data-testid="product-card-name"]')?.textContent);
 
-    const link = card.href || '';
+        const quantity = clean(
+          card.querySelector('div.mb-1 > p.text-base')?.textContent || ''
+        );
 
-    /* check whether the banner that says “Out of Stock” exists */
-    const outOfStock = card.innerText.toLowerCase().includes('out of stock');
+        const price = firstRs(
+          card.querySelector('p.text-\\[20px\\]')?.textContent ||
+          card.querySelector('[data-testid="product-card-price"]')?.textContent ||
+          card.innerText
+        );
 
-    return {
-      name:          txt('[data-testid="product-card-name"]'),
-      quantity:      txt('[data-testid="product-card-quantity"]'),
-      price:         price('[data-testid="product-card-price"]'),
-      originalPrice: price('p.line-through'),
-      deliveryTime:  txt('[data-testid="delivery-time"] span.font-extrabold') ||
-                     txt('p.block.font-body.text-xs'),
-      image:         img(),
-      link:          link,
-      outOfStock                                                
-    };
-  });
-});
+        const originalPrice = firstRs(
+          card.querySelector('p.line-through')?.textContent || ''
+        );
 
+        const deliveryTime = clean(
+          card.querySelector('p.block.font-body')?.textContent ||
+          (card.innerText.match(/\d+\s*Mins/i) || [''])[0]
+        );
 
+        const imgTag = card.querySelector('img[data-testid="product-card-image"], img');
+        const image = imgTag?.currentSrc || imgTag?.src || '';
 
-    return products.filter(p => p.name && p.price).slice(0, 10);
+        const href = card.getAttribute('href') || '';
+        const link = href.startsWith('http') ? href : `https://www.zeptonow.com${href}`;
+
+        const outOfStock = /out of stock/i.test(card.innerText);
+
+        return {
+          name,
+          quantity,
+          price,
+          originalPrice,
+          deliveryTime,
+          image,
+          link,
+          outOfStock
+        };
+      }).filter(p => p.name && p.price);
+    });
+
+    return products;
   } catch (err) {
     console.error("Zepto scrape error:", err.message);
     return [];

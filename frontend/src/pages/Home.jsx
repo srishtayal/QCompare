@@ -52,7 +52,7 @@ export default function Home() {
   return (
     <div className="relative w-full min-h-screen overflow-hidden bg-[#0f1117]">
       <ShootingStars className="absolute inset-0 z-0" />
-      <div className="flex flex-col min-h-screen">
+      <div className="flex flex-col min-h-screen mt-8">
       <div className="w-full  p-4 z-20 relative flex justify-center items-end">
         <LocationSelector setPincode={setPincode}/>
         <SearchBar query={query} setQuery={setQuery} onSearch={onSearch}/>
@@ -66,7 +66,7 @@ export default function Home() {
               images={[
                 "/logos/instamart.png",
                 "/logos/zepto.jpeg",
-                "/logos/blinkit.png"
+                "/logos/Blinkit.svg"
               ]}
               interval={2500}
               imgClassName="h-16 w-16 object-contain rounded-xl"
@@ -80,9 +80,13 @@ export default function Home() {
         <LoadingScreen/>
       
         :
-        (
-        results.map((item, i) => <ProductCard key={i} {...item} />)
-        )
+        <div className="w-full flex justify-center p-4 mt-10">
+        <div className="grid gap-y-10 gap-x-14 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+          {results.map((item, i) => (
+            <ProductCard key={i} {...item} />
+          ))}
+        </div>
+        </div>
       }
       
       </div>

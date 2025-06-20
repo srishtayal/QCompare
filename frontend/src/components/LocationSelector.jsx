@@ -5,7 +5,6 @@ export default function LocationSelector({ setPincode }) {
 
   return (
     <div>
-      <label className="block text-lg font-semibold ">Enter Location</label>
       <input
         className="w-96 px-4 py-2 mr-7 rounded-3xl border border-gray-600 bg-[#0f1117] text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 transition-all duration-200 "
         type="text"

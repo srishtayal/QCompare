@@ -1,4 +1,4 @@
-export default function ProductCard({ name, quantity, blinkit, zepto }) {
+export default function ProductCard({ name, quantity, blinkit, zepto,swiggy }) {
   const platformLogo = (src, url) => (
     <a href={url} target="_blank" rel="noopener noreferrer">
       <img src={src} alt="platform" className="h-6 w-auto hover:opacity-80" />
@@ -6,51 +6,97 @@ export default function ProductCard({ name, quantity, blinkit, zepto }) {
   );
 
   return (
-    <div className="relative z-10 border rounded p-4 mb-4 flex flex-col md:flex-row justify-between gap-4 bg-white shadow">
-      <div>
-        <p className="font-semibold text-lg">{name}</p>
-        <p className="text-sm text-gray-600">{quantity}</p>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-4 items-center">
-
-        {blinkit && (
-          <div className="flex items-center gap-2">
-            {platformLogo('/blinkit.png', blinkit.link)}
-
-            {blinkit.outOfStock ? (
-              <span className="text-xs font-semibold text-red-500">
-                Out&nbsp;of&nbsp;Stock
-              </span>
-            ) : (
-              <>
-                <p className="text-sm">₹{blinkit.price}</p>
-                <span className="text-xs text-gray-500">
-                  {blinkit.deliveryTime}
-                </span>
-              </>
-            )}
-          </div>
-        )}
-
-        {zepto && (
-          <div className="flex items-center gap-2">
-            {platformLogo('/zepto.png', zepto.link)}
-            {zepto.outOfStock ? (
-              <span className="text-xs font-semibold text-red-500">
-                Out&nbsp;of&nbsp;Stock
-              </span>
-            ) : (
-              <>
-                <p className="text-sm">₹{zepto.price}</p>
-                <span className="text-xs text-gray-500">
-                  {zepto.deliveryTime}
-                </span>
-              </>
-            )}
-          </div>
-        )}
-      </div>
+    <div className="rounded-xl border border-white/10 bg-[#16181d] p-4 shadow-md hover:shadow-lg transition-shadow duration-300 w-full max-w-sm">
+  <div className="flex justify-center">
+  <div className="h-40 w-46 mb-4 rounded-lg overflow-hidden bg-white">
+  <img
+    src="/logos/butterscotch.webp"
+    alt="Product Name"
+    className="h-full w-full object-contain"
+  />
+</div>
+</div>
+  <h3 className="text-white font-semibold text-lg leading-tight">
+    {name}
+  </h3>
+  <p className="text-gray-400 text-sm mb-2">{quantity}</p>
+  <div className="flex items-center justify-between mt-3">
+    <div className="flex items-baseline space-x-1">
+      <span className="text-white font-bold text-xl">₹149</span>
+      <span className="text-gray-500 text-xs">11 mins</span>
     </div>
+    <button className="bg-gradient-to-r from-[#b9025ebc] to-[#5a12a1] px-3 py-1 rounded-md text-sm w-20 text-center text-white shadow-md hover:scale-105 transition-transform">
+      Zepto
+    </button>
+ </div>
+ <div className="flex items-center justify-between mt-3">
+    <div className="flex items-baseline space-x-1">
+      <span className="text-white font-bold text-xl">₹149</span>
+      <span className="text-gray-500 text-xs">11 mins</span>
+    </div>
+    <button className="bg-gradient-to-r from-[#ff5c21] to-[#c94612] px-3 py-1 rounded-md text-sm w-20 text-center text-white shadow-md hover:scale-105 transition-transform">
+      Instamart
+    </button>
+ </div>
+ <div className="flex items-center justify-between mt-3">
+    <div className="flex items-baseline space-x-1">
+      <span className="text-white font-bold text-xl">₹149</span>
+      <span className="text-gray-500 text-xs">11 mins</span>
+    </div>
+    
+      <button className="bg-gradient-to-r cursor-pointer from-[#f7e02f] to-[#b28a069b] px-3 py-1 rounded-md text-sm w-20 text-center text-white shadow-md hover:brightness-110 transition-all">
+      Blinkit
+    </button>
+   
+    
+    
+ </div>
+</div>
+    // <div className="relative z-10 border rounded p-4 mb-4 flex flex-col md:flex-row justify-between gap-4 shadow bg-white">
+    //   <div>
+    //     <p className="font-semibold text-lg">{name}</p>
+    //     <p className="text-sm text-gray-600">{quantity}</p>
+    //   </div>
+
+    //   <div className="flex flex-col md:flex-row gap-4 items-center">
+
+    //     {blinkit && (
+    //       <div className="flex items-center gap-2">
+    //         {platformLogo('/blinkit.png', blinkit.link)}
+
+    //         {blinkit.outOfStock ? (
+    //           <span className="text-xs font-semibold text-red-500">
+    //             Out&nbsp;of&nbsp;Stock
+    //           </span>
+    //         ) : (
+    //           <>
+    //             <p className="text-sm">₹{blinkit.price}</p>
+    //             <span className="text-xs text-gray-500">
+    //               {blinkit.deliveryTime}
+    //             </span>
+    //           </>
+    //         )}
+    //       </div>
+    //     )}
+
+    //     {zepto && (
+    //       <div className="flex items-center gap-2">
+    //         {platformLogo('/zepto.png', zepto.link)}
+    //         {zepto.outOfStock ? (
+    //           <span className="text-xs font-semibold text-red-500">
+    //             Out&nbsp;of&nbsp;Stock
+    //           </span>
+    //         ) : (
+    //           <>
+    //             <p className="text-sm">₹{zepto.price}</p>
+    //             <span className="text-xs text-gray-500">
+    //               {zepto.deliveryTime}
+    //             </span>
+    //           </>
+    //         )}
+    //       </div>
+    //     )}
+    //   </div>
+    // </div>
   );
 }

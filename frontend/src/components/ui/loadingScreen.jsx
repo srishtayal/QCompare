@@ -38,7 +38,7 @@ export default function LoadingScreen() {
   return (
     <div className="fixed inset-0 z-50 bg-[#0f1117] text-white flex flex-col items-center justify-center px-4">
       <motion.div
-        className="w-16 h-16 rounded-full border-t-4 border-b-4 border-indigo-500"
+        className="w-16 h-16 rounded-full border-t-4 border-b-4 border-yellow-500"
         animate={{ rotate: 360 }}
         transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
       />

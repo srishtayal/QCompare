@@ -93,13 +93,12 @@ const products = await page.evaluate(() => {
       .find(src => src.includes('media-assets.swiggy.com') && !src.includes('instamart-media-assets')) || null;
     const quantity = item.querySelector('.FqnWn')?.innerText || '';
     const delivery = item.querySelector('.sc-aXZVg.cwTvVs.GOJ8s')?.innerText || '';
-    const price = item.querySelector('[data-testid="item-mrp-price"]')?.innerText || '';
-    const offer = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
+    const price = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
     const link=generateSwiggySearchURL(name);
     const isSoldOut = !!item.querySelector('[data-testid="sold-out"]');
     const availability = isSoldOut ? 'Sold Out' : 'Available';
 
-    return { name, productImg, quantity, delivery, price, offer,link, availability };
+    return { name, productImg, quantity, delivery, price,link, availability };
   });
 });
 

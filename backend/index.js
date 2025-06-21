@@ -4,18 +4,23 @@ const matchProducts = require('./utils/compareProducts');
 const scrapeBlinkit = require('./scrapers/blinkit'); 
 const fetchZeptoPrices = require('./scrapers/zepto');
 const swiggyScrape= require('./scrapers/instamart');
+const fetchLocation=require('./api')
 
 const app = express();
-app.use(cors());   // listen to every / port
+app.use(cors());  
 app.use(express.json());
 app.post('/search/swiggy',async(req,res)=>{
   const {query,pincode}=req.body;
+  const location=await fetchLocation(pincode)
 
   if (!query || !pincode) {
     return res.status(400).json({ error: 'Query and pincode required.' });
   }
+  if(!location.latitude){
+    return res.status(400).json({error:"Try searching with a more specific locality name "})
+  }
   try {
-    const results = await swiggyScrape(query, pincode);
+    const results = await swiggyScrape(query, location);
     res.json(results);
   } catch (error) {
     console.error('Error scraping Blinkit:', error);
@@ -40,43 +45,34 @@ app.post('/search/blinkit', async (req, res) => {
 
 app.post('/search/zepto', async (req, res) => {
   const { query, pincode } = req.body;
-  const results = await fetchZeptoPrices(query, pincode);
+  const location=await fetchLocation(pincode);
+  if (!query || !pincode) {
+    return res.status(400).json({ error: 'Query and pincode required.' });
+  }
+  if(!location.latitude){
+    return res.status(400).json({error:"Try searching with a more specific locality name "})
+  }
+  const results = await fetchZeptoPrices(query, location);
   res.json(results);
 });
 
-// app.post('/search/compare', async (req, res) => {
-//   const { query, pincode } = req.body;
-//   if (!query || !pincode) {
-//     return res.status(400).json({ error: 'Query and pincode required.' });
-//   }
-
-//   try {
-//     const [blinkitData, zeptoData] = await Promise.all([
-//       scrapeBlinkit(query, pincode),
-//       fetchZeptoPrices(query, pincode),
-//     ]);
-
-//     const comparison = matchProducts(blinkitData, zeptoData);
-//     res.json(comparison);
-//   } catch (error) {
-//     console.error('Comparison error:', error);
-//     res.status(500).json({ error: 'Comparison failed.' });
-//   }
-// });
-
 app.post('/search/compare', async (req, res) => {
   const { query, pincode } = req.body;
+  const location=await fetchLocation(pincode)
 
   if (!query || !pincode) {
     return res.status(400).json({ error: 'Query and pincode required.' });
+  }
+  if(!location.latitude){
+    return res.status(400).json({error:"Try searching with a more specific locality name "})
   }
 
   try {
     /* run all three scrapers in parallel */
     const [blinkitData, zeptoData, swiggyData] = await Promise.all([
       scrapeBlinkit(query, pincode),             // Blinkit takes pin directly
-      fetchZeptoPrices(query, pincode),          // Zepto takes pin directly
-      swiggyScrape(query, pincode)               // Instamart uses the pin as location text
+      fetchZeptoPrices(query, location),          // Zepto takes pin directly
+      swiggyScrape(query, location)               // Instamart uses the pin as location text
     ]);
 
     /* merge them – matchProducts now accepts three arrays */

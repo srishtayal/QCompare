@@ -2,9 +2,9 @@ const puppeteer = require('puppeteer');
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function scrapeBlinkit(query, pincode = '110078', maxProducts = 10) {
+async function scrapeBlinkit(query, pincode = '110078', maxProducts = 20) {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: { width: 1280, height: 800 }
   });

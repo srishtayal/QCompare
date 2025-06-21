@@ -2,9 +2,10 @@ const puppeteer = require("puppeteer");
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function fetchZeptoPrices(query, pincode = "110078") {
+async function fetchZeptoPrices(query, location) {
+  const {latitude,longitude}=location;
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -21,7 +22,7 @@ async function fetchZeptoPrices(query, pincode = "110078") {
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
   );
-  await page.setGeolocation({ latitude: 28.6094, longitude: 77.0405 });
+  await page.setGeolocation({ latitude, longitude});
 
   try {
     // Step 1: Load homepage

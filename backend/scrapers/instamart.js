@@ -1,22 +1,13 @@
 const puppeteer = require('puppeteer');
-const dotenv=require('dotenv');
-const axios= require('axios');
 
-dotenv.config();
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function encodeToUTF8(query) {
-  return encodeURIComponent(query);
-}
 
 
-
-async function swiggyScrape(query, pincode){
+async function swiggyScrape(query, location){
   
-  const encodedQuery= await encodeToUTF8(`"${pincode}"`);
-  const res= await axios.get(`https://geocode.maps.co/search?q=${encodedQuery}&api_key=${process.env.API}`);
-  const latitude= Number(res.data[0].lat);
-  const longitude=Number(res.data[0].lon);
+  
+  const {latitude,longitude}=location;
 
 
   const browser = await puppeteer.launch({

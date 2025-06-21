@@ -4,7 +4,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function scrapeBlinkit(query, pincode = '110078', maxProducts = 10) {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: { width: 1280, height: 800 }
   });
@@ -49,15 +49,15 @@ async function scrapeBlinkit(query, pincode = '110078', maxProducts = 10) {
            .replace(/[^a-z0-9]+/g, '-')    /* non-alnum → dash */  /*[3]*/
            .replace(/^-+|-+$/g, '');       /* trim dashes */
 
-      const firstRupee = nodes => {
-        for (const el of nodes) {
-          if (el.innerText?.includes('₹')) {
-            const m = el.innerText.match(/₹\s?\d+/);
-            if (m) return m[0];
-          }
-        }
-        return '';
-      };
+      // const firstRupee = nodes => {
+      //   for (const el of nodes) {
+      //     if (el.innerText?.includes('₹')) {
+      //       const m = el.innerText.match(/₹\s?\d+/);
+      //       if (m) return m[0];
+      //     }
+      //   }
+      //   return '';
+      // };
 
       const pickImage = img =>
         img?.currentSrc ||
@@ -74,7 +74,9 @@ async function scrapeBlinkit(query, pincode = '110078', maxProducts = 10) {
         const quantity =
           tile.querySelector('div.tw-text-200.tw-font-medium')?.innerText.trim() || '';
 
-        const price = firstRupee(tile.querySelectorAll('div, span, p'));
+        let price = '';
+        const priceEl = tile.querySelector('div.tw-text-200.tw-font-semibold');
+        if (priceEl) price = priceEl.innerText.trim();
 
         let originalPrice = '';
         const strike = tile.querySelector(

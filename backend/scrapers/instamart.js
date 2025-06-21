@@ -81,12 +81,9 @@ const products = await page.evaluate(() => {
   
   const items = Array.from(document.querySelectorAll('[data-testid="default_container_ux4"]'));
 
-  const filteredItems = items.filter(item => {
-  const adBadge = item.querySelector('[data-testid="badge-wrapper"]');
-  return !(adBadge && adBadge.innerText.trim() === "Ad");
-  });
   
-  return filteredItems.map(item => {
+  
+  return items.map(item => {
     const name = item.querySelector('.novMV')?.innerText || '';
     const productImg = Array.from(item.querySelectorAll('img'))
       .map(img => img.src)

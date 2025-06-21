@@ -5,7 +5,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 async function fetchZeptoPrices(query, location) {
   const {latitude,longitude}=location;
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",

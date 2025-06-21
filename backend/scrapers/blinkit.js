@@ -2,9 +2,9 @@ const puppeteer = require('puppeteer');
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-async function scrapeBlinkit(query, pincode = '110078', maxProducts = 20) {
+async function scrapeBlinkit(query, pincode = '110078', maxProducts = 25) {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: { width: 1280, height: 800 }
   });
@@ -41,7 +41,20 @@ async function scrapeBlinkit(query, pincode = '110078', maxProducts = 20) {
     /* 4. Tiles */
     const tileSel = 'div[role="button"][id]';
     await page.waitForSelector(tileSel, { timeout: 30_000 });
-
+    // Lazy loading: scroll to load more products
+let previousHeight;
+try {
+  previousHeight = await page.evaluate('document.body.scrollHeight');
+  for (let i = 0; i < 10; i++) {
+    await page.evaluate('window.scrollTo(0, document.body.scrollHeight)');
+    await delay(200); // wait for lazy content
+    const newHeight = await page.evaluate('document.body.scrollHeight');
+    if (newHeight === previousHeight) break;
+    previousHeight = newHeight;
+  }
+} catch (e) {
+  console.warn('Scrolling failed:', e.message);
+}
     const products = await page.$$eval(tileSel, tiles => {
       /* slugify helper (DOM context) */
       const slugify = str =>

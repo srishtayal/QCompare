@@ -4,7 +4,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 
 async function fetchZeptoPrices(query, pincode = "110078") {
   const browser = await puppeteer.launch({
-    headless: true,
+    headless: false,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -21,22 +21,26 @@ async function fetchZeptoPrices(query, pincode = "110078") {
 
   try {
     // Step 1: Load homepage
-    await page.goto("https://www.zeptonow.com/", { waitUntil: "domcontentloaded" });
+    await page.goto("https://www.zeptonow.com/", { waitUntil: "networkidle2" });
 
     // Step 2: Click 'Select Location'
-    await page.waitForSelector('button[aria-label="Select Location"]', { timeout: 15000 }, { visible: true });
+    await page.waitForSelector('button[aria-label="Select Location"]', { visible: true, timeout: 20000 });
     await page.click('button[aria-label="Select Location"]');
+    await delay(1000);;
 
     // Step 3: Type in pincode
     const locInput = 'input[type="text"]';
     await page.waitForSelector(locInput, { visible: true });
     await page.click(locInput, { clickCount: 3 });
+    await delay(500)
     await page.type(locInput, `${pincode}`, { delay: 70 });
+    await delay(1000);
 
     // Step 4: Select address suggestion
     const suggestion = '[data-testid="address-search-item"]';
     await page.waitForSelector(suggestion, { visible: true, timeout: 10000 });
     await page.click(suggestion);
+    await delay(500);
 
     // Step 5: Confirm location
     const confirmBtn = '[data-testid="location-confirm-btn"]';

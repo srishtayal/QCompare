@@ -14,10 +14,14 @@ async function fetchZeptoPrices(query, pincode = "110078") {
     defaultViewport: { width: 1280, height: 800 }
   });
 
+  const context = browser.defaultBrowserContext();
+  await context.overridePermissions("https://www.zeptonow.com", ["geolocation"]);
+
   const page = await browser.newPage();
   await page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
   );
+  await page.setGeolocation({ latitude: 28.6094, longitude: 77.0405 });
 
   try {
     // Step 1: Load homepage
@@ -31,21 +35,23 @@ async function fetchZeptoPrices(query, pincode = "110078") {
     // Step 3: Type in pincode
     const locInput = 'input[type="text"]';
     await page.waitForSelector(locInput, { visible: true });
-    await page.click(locInput, { clickCount: 3 });
-    await delay(500)
-    await page.type(locInput, `${pincode}`, { delay: 70 });
-    await delay(1000);
+    await page.waitForSelector('button[aria-label="Enable"]', { visible: true, timeout: 15000 });
+    await page.click('button[aria-label="Enable"]');
+    // await page.click(locInput, { clickCount: 3 });
+    // await delay(500)
+    // await page.type(locInput, `${pincode}`, { delay: 70 });
+    // await delay(1000);
 
     // Step 4: Select address suggestion
-    const suggestion = '[data-testid="address-search-item"]';
-    await page.waitForSelector(suggestion, { visible: true, timeout: 10000 });
-    await page.click(suggestion);
+    // const suggestion = '[data-testid="address-search-item"]';
+    // await page.waitForSelector(suggestion, { visible: true, timeout: 10000 });
+    // await page.click(suggestion);
     await delay(500);
 
     // Step 5: Confirm location
-    const confirmBtn = '[data-testid="location-confirm-btn"]';
-    await page.waitForSelector(confirmBtn, { visible: true, timeout: 10000 });
-    await page.click(confirmBtn);
+    // const confirmBtn = '[data-testid="location-confirm-btn"]';
+    // await page.waitForSelector(confirmBtn, { visible: true, timeout: 10000 });
+    // await page.click(confirmBtn);
 
     // Step 6: Wait for location update
     await page.waitForNavigation({ waitUntil: "networkidle0" });

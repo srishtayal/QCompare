@@ -5,7 +5,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 async function fetchZeptoPrices(query, location) {
   const {latitude,longitude}=location;
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: true,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -29,14 +29,14 @@ async function fetchZeptoPrices(query, location) {
     await page.goto("https://www.zeptonow.com/", { waitUntil: "networkidle2" });
 
     // Step 2: Click 'Select Location'
-    await page.waitForSelector('button[aria-label="Select Location"]', { visible: true, timeout: 20000 });
+    await page.waitForSelector('button[aria-label="Select Location"]', { visible: true, timeout: 10000 });
     await page.click('button[aria-label="Select Location"]');
     await delay(1000);;
 
     // Step 3: Type in pincode
     const locInput = 'input[type="text"]';
     await page.waitForSelector(locInput, { visible: true });
-    await page.waitForSelector('button[aria-label="Enable"]', { visible: true, timeout: 15000 });
+    await page.waitForSelector('button[aria-label="Enable"]', { visible: true, timeout: 10000 });
     await page.click('button[aria-label="Enable"]');
     // await page.click(locInput, { clickCount: 3 });
     // await delay(500)
@@ -63,7 +63,7 @@ async function fetchZeptoPrices(query, location) {
 
     // Step 8: Type the query
     const searchInput = 'input[placeholder*="Search"]';
-    await page.waitForSelector(searchInput, { visible: true, timeout: 15000 });
+    await page.waitForSelector(searchInput, { visible: true, timeout: 10000 });
     await page.type(searchInput, query, { delay: 60 });
     await page.keyboard.press("Enter");
 
@@ -75,7 +75,7 @@ async function fetchZeptoPrices(query, location) {
 
     // Step 10: Wait for product cards
     const productCard = "[data-testid='product-card']";
-    await page.waitForSelector(productCard, { timeout: 30000 });
+    await page.waitForSelector(productCard, { timeout: 3000 });
 
     // Step 11: Extract products
     const products = await page.$$eval('[data-testid="product-card"]', cards => {

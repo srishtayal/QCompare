@@ -1,13 +1,13 @@
-const stringSimilarity = require('string-similarity');
+const Fuse = require('fuse.js');
 
-const SIM_THRESHOLD = 0.65;
-
-const normalize = t => t
-  .toLowerCase()
-  .replace(/[^\x00-\x7F]/g, ' ')   // strip non-ASCII
-  .replace(/[^\w\s]/g, ' ')        // strip punctuation
-  .replace(/\s+/g, ' ')
-  .trim();
+function normalize(text) {
+  return (text || '')
+    .toLowerCase()
+    .replace(/[^\x00-\x7F]/g, ' ')   // Remove non-ASCII
+    .replace(/[^\w\s]/g, ' ')        // Remove punctuation
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 function pickFields(obj, isSwiggy = false) {
   return {
@@ -24,71 +24,70 @@ function matchProducts(blinkit = [], zepto = [], swiggy = []) {
   const matchedZ = new Set();
   const matchedS = new Set();
 
-  /* ---------- Blinkit-anchored merge ---------- */
+  const options = {
+    keys: ['name'],
+    threshold: 0.33,         
+    minMatchCharLength: 2,
+    includeScore: true
+  };
+
+  const fuseZepto = new Fuse(zepto, options);
+  const fuseSwiggy = new Fuse(swiggy, options);
+
   const rows = blinkit.map(b => {
-    /* best Zepto */
-    const zHit = zepto
-      .map((z, i) => ({
-        idx: i,
-        prod: z,
-        sim: stringSimilarity.compareTwoStrings(normalize(b.name), normalize(z.name))
-      }))
-      .filter(o => o.sim > SIM_THRESHOLD)
-      .sort((a, b) => b.sim - a.sim)[0];
+    const bName = normalize(b.name);
 
-    if (zHit) matchedZ.add(zHit.idx);
+    const zMatch = fuseZepto.search(bName).find(r => r.score <= 0.45);
+    const sMatch = fuseSwiggy.search(bName).find(r => r.score <= 0.45);
 
-    /* best Swiggy */
-    const sHit = swiggy
-      .map((s, i) => ({
-        idx: i,
-        prod: s,
-        sim: stringSimilarity.compareTwoStrings(normalize(b.name), normalize(s.name))
-      }))
-      .filter(o => o.sim > SIM_THRESHOLD)
-      .sort((a, b) => b.sim - a.sim)[0];
+    const zProd = zMatch?.item;
+    const sProd = sMatch?.item;
 
-    if (sHit) matchedS.add(sHit.idx);
+    if (zProd) matchedZ.add(zMatch.refIndex);
+    if (sProd) matchedS.add(sMatch.refIndex);
 
-    /* photo priority: Swiggy > Blinkit > Zepto */
     const photo =
-      (sHit && (sHit.prod.productImg || sHit.prod.image)) ||
-      b.image  || b.productImg ||
-      (zHit && zHit.prod.image) ||
+      (sProd && (sProd.productImg || sProd.image)) ||
+      b.image || b.productImg ||
+      (zProd && zProd.image) ||
       '';
 
     return {
-      name:     b.name,
-      quantity: b.quantity,
-      photo,                              
-      blinkit:  pickFields(b),
-      zepto:    zHit ? pickFields(zHit.prod) : null,
-      swiggy:   sHit ? pickFields(sHit.prod, true) : null
+      name: b.name,
+      blinkitQuantity: b.quantity,
+      zeptoQuantity: zProd?.quantity || null,
+      swiggyQuantity: sProd?.quantity || null,
+      photo,
+      blinkit: pickFields(b),
+      zepto: zProd ? pickFields(zProd) : null,
+      swiggy: sProd ? pickFields(sProd, true) : null
     };
   });
 
-  /* ---------- unmatched Zepto ---------- */
   const extraZ = zepto
     .filter((_, i) => !matchedZ.has(i))
     .map(z => ({
-      name:     z.name,
-      quantity: z.quantity,
-      photo:    z.image || '',
-      blinkit:  null,
-      zepto:    pickFields(z),
-      swiggy:   null
+      name: z.name,
+      blinkitQuantity: null,
+      zeptoQuantity: z.quantity,
+      swiggyQuantity: null,
+      photo: z.image || '',
+      blinkit: null,
+      zepto: pickFields(z),
+      swiggy: null
     }));
 
-  /* ---------- unmatched Swiggy ---------- */
   const extraS = swiggy
     .filter((_, i) => !matchedS.has(i))
     .map(s => ({
-      name:     s.name,
-      quantity: s.quantity,
-      photo:    s.productImg || s.image || '',
-      blinkit:  null,
-      zepto:    null,
-      swiggy:   pickFields(s, true)
+      name: s.name,
+      blinkitQuantity: null,
+      zeptoQuantity: null,
+      swiggyQuantity: s.quantity,
+      photo: s.productImg || s.image || '',
+      blinkit: null,
+      zepto: null,
+      swiggy: pickFields(s, true)
     }));
 
   return [...rows, ...extraZ, ...extraS];

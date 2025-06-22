@@ -1,68 +1,115 @@
-const Fuse = require('fuse.js');
-
-function normalize(text) {
-  return (text || '')
+function normalize(text = '') {
+  return text
     .toLowerCase()
-    .replace(/[^\x00-\x7F]/g, ' ')   // Remove non-ASCII
-    .replace(/[^\w\s]/g, ' ')        // Remove punctuation
+    .replace(/[^\x00-\x7F]/g, ' ')
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\bml\b/g, ' ml')
+    .replace(/\bl\b/g, ' l')
+    .replace(/\bkg\b/g, ' kg')
+    .replace(/\bg\b/g, ' g')
     .replace(/\s+/g, ' ')
     .trim();
 }
 
+function tokenize(text) {
+  return new Set(normalize(text).split(' '));
+}
+
+function scoreTokens(tokensA, tokensB) {
+  const intersection = [...tokensA].filter(t => tokensB.has(t)).length;
+  const union = new Set([...tokensA, ...tokensB]).size;
+  return intersection / union; // Jaccard similarity
+}
+
 function pickFields(obj, isSwiggy = false) {
   return {
-    price:        obj.price,
-    link:         obj.link || '',
-    deliveryTime: isSwiggy ? obj.delivery : obj.deliveryTime,
-    outOfStock:   obj.outOfStock ?? obj.availability === 'Sold Out',
-    photo:        isSwiggy ? obj.productImg :
-                  obj.image       || obj.productImg || ''
+    price: obj.price,
+    link: obj.link || '',
+    deliveryTime: isSwiggy ? obj.deliveryTime : obj.deliveryTime,
+    outOfStock: obj.outOfStock ?? obj.availability === 'Sold Out',
+    photo: isSwiggy ? obj.productImg : obj.image || obj.productImg || ''
   };
 }
 
+function matchOneToOneCustom(blinkit, targetList, isSwiggy = false) {
+  const used = new Set();
+  return blinkit.map(b => {
+    const bTokens = tokenize(b.name);
+    let bestScore = 0;
+    let bestMatch = null;
+    let bestIndex = -1;
+
+    targetList.forEach((t, idx) => {
+      if (used.has(idx)) return;
+      const tTokens = tokenize(t.name);
+      const score = scoreTokens(bTokens, tTokens);
+      if (score > bestScore) {
+        bestScore = score;
+        bestMatch = t;
+        bestIndex = idx;
+      }
+    });
+
+    if (bestScore >= 0.7 && bestMatch) {
+      used.add(bestIndex);
+      return bestMatch;
+    }
+
+    return null;
+  });
+}
+
+function shufflePlatformPickOrder(arrays) {
+  const sources = Object.keys(arrays);
+  const sourcePool = [];
+
+  const maxLength = Math.max(
+    ...sources.map(source => arrays[source].length)
+  );
+
+  for (let i = 0; i < maxLength; i++) {
+    const available = sources.filter(source => arrays[source][i]);
+    while (available.length) {
+      const randomIndex = Math.floor(Math.random() * available.length);
+      const source = available.splice(randomIndex, 1)[0];
+      sourcePool.push(arrays[source][i]);
+    }
+  }
+
+  return sourcePool;
+}
+
 function matchProducts(blinkit = [], zepto = [], swiggy = []) {
-  const matchedZ = new Set();
-  const matchedS = new Set();
+  const zMatches = matchOneToOneCustom(blinkit, zepto);
+  const sMatches = matchOneToOneCustom(blinkit, swiggy, true);
 
-  const options = {
-    keys: ['name'],
-    threshold: 0.33,         
-    minMatchCharLength: 2,
-    includeScore: true
-  };
+  const matchedZ = new Set(zMatches.map(z => zepto.indexOf(z)).filter(i => i >= 0));
+  const matchedS = new Set(sMatches.map(s => swiggy.indexOf(s)).filter(i => i >= 0));
 
-  const fuseZepto = new Fuse(zepto, options);
-  const fuseSwiggy = new Fuse(swiggy, options);
-
-  const rows = blinkit.map(b => {
-    const bName = normalize(b.name);
-
-    const zMatch = fuseZepto.search(bName).find(r => r.score <= 0.45);
-    const sMatch = fuseSwiggy.search(bName).find(r => r.score <= 0.45);
-
-    const zProd = zMatch?.item;
-    const sProd = sMatch?.item;
-
-    if (zProd) matchedZ.add(zMatch.refIndex);
-    if (sProd) matchedS.add(sMatch.refIndex);
-
-    const photo =
-      (sProd && (sProd.productImg || sProd.image)) ||
-      b.image || b.productImg ||
-      (zProd && zProd.image) ||
-      '';
+  const rows = blinkit.map((b, i) => {
+    const z = zMatches[i];
+    const s = sMatches[i];
 
     return {
       name: b.name,
       blinkitQuantity: b.quantity,
-      zeptoQuantity: zProd?.quantity || null,
-      swiggyQuantity: sProd?.quantity || null,
-      photo,
+      zeptoQuantity: z?.quantity || null,
+      swiggyQuantity: s?.quantity || null,
+      photo: s?.productImg || b.image || z?.image || '',
       blinkit: pickFields(b),
-      zepto: zProd ? pickFields(zProd) : null,
-      swiggy: sProd ? pickFields(sProd, true) : null
+      zepto: z ? pickFields(z) : null,
+      swiggy: s ? pickFields(s, true) : null
     };
   });
+
+  const matchedRows = rows.filter(r => {
+    const count = [r.blinkit, r.zepto, r.swiggy].filter(Boolean).length;
+    return count >= 2;
+  });
+
+  const unmatchedBlinkitOnly = rows.filter(r =>
+    r.blinkit && !r.zepto && !r.swiggy
+  );
 
   const extraZ = zepto
     .filter((_, i) => !matchedZ.has(i))
@@ -90,7 +137,14 @@ function matchProducts(blinkit = [], zepto = [], swiggy = []) {
       swiggy: pickFields(s, true)
     }));
 
-  return [...rows, ...extraZ, ...extraS];
+  // Respect individual source order, only shuffle pick order
+  const mixedExtras = shufflePlatformPickOrder({
+    blinkit: unmatchedBlinkitOnly,
+    zepto: extraZ,
+    swiggy: extraS
+  });
+
+  return [...matchedRows, ...mixedExtras];
 }
 
 module.exports = matchProducts;

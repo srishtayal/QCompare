@@ -1,4 +1,4 @@
-export default function ProductCard({ name, quantity,photo, blinkit, zepto,swiggy }) {
+export default function ProductCard({ name, quantity,photo,zeptoQuantity,swiggyQuantity,blinkitQuantity, blinkit, zepto,swiggy }) {
   const platformLogo = (src, url) => (
     <a href={url} target="_blank" rel="noopener noreferrer">
       <img src={src} alt="platform" className="h-6 w-auto hover:opacity-80" />
@@ -25,7 +25,9 @@ export default function ProductCard({ name, quantity,photo, blinkit, zepto,swigg
   <div className="flex items-center justify-between mt-3">
     <div className="flex items-baseline space-x-1">
       <span className="text-white font-bold text-xl">{zepto.price}</span>
+      <span className="text-gray-500 text-xs">{zeptoQuantity} |</span>
       <span className="text-gray-500 text-xs">{zepto.deliveryTime} MINS</span>
+      
     </div>
     {zepto.outOfStock ? (
       <div className="bg-[#5a12a1] px-3 py-1 rounded-md text-sm w-xxxs text-center text-white opacity-50 cursor-not-allowed">
@@ -48,7 +50,8 @@ export default function ProductCard({ name, quantity,photo, blinkit, zepto,swigg
   <div className="flex items-center justify-between mt-3">
     <div className="flex items-baseline space-x-1">
       <span className="text-white font-bold text-xl">₹{swiggy.price}</span>
-      <span className="text-gray-500 text-xs">{swiggy.deliveryTime}</span>
+      <span className="text-gray-500 text-xs">{swiggyQuantity} |</span>
+      <span className="text-gray-500 relative z-60 text-xs">{swiggy.deliveryTime} MINS</span>
     </div>
     {swiggy.outOfStock ? (
       <div className="bg-[#c94612] px-3 py-1 rounded-md text-sm w-xxxs text-center text-white opacity-50 cursor-not-allowed">
@@ -71,6 +74,7 @@ export default function ProductCard({ name, quantity,photo, blinkit, zepto,swigg
   <div className="flex items-center justify-between mt-3">
     <div className="flex items-baseline space-x-1">
       <span className="text-white font-bold text-xl">{blinkit.price}</span>
+      <span className="text-gray-500 text-xs">{blinkitQuantity} |</span>
       <span className="text-gray-500 text-xs">{blinkit.deliveryTime}</span>
     </div>
     {blinkit.outOfStock ? (

@@ -93,11 +93,5 @@ export default function Home() {
     </div>
   );
 }
-{/*
-      
-      {loading ? (
-        <p className="text-center mt-10">Loading...</p>
-      ) : (
-        results.map((item, i) => <ProductCard key={i} {...item} />)
-      )} */}
+
 

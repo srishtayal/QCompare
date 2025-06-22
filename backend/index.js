@@ -69,12 +69,8 @@ app.post('/search/zepto', async (req, res) => {
 //   }
 
 //   try {
-//     /* run all three scrapers in parallel */
-//     const [blinkitData, zeptoData, swiggyData] = await Promise.all([
-//       scrapeBlinkit(query, pincode),             // Blinkit takes pin directly
-//       fetchZeptoPrices(query, location),          // Zepto takes pin directly
-//       swiggyScrape(query, location)               // Instamart uses the pin as location text
-//     ]);
+    /* run all three scrapers in parallel */
+    
 
 //     /* merge them – matchProducts now accepts three arrays */
 //     const comparison = matchProducts(blinkitData, zeptoData, swiggyData);
@@ -100,11 +96,11 @@ app.post('/search/compare', async (req, res) => {
   }
 
   try {
-    const blinkitData = await scrapeBlinkit(query, pincode);
-
-    const zeptoData = await fetchZeptoPrices(query, location);
-
-    const swiggyData = await swiggyScrape(query, location);
+    const [blinkitData, zeptoData, swiggyData] = await Promise.all([
+      scrapeBlinkit(query, pincode),             // Blinkit takes pin directly
+      fetchZeptoPrices(query, location),          // Zepto takes pin directly
+      swiggyScrape(query, location)               // Instamart uses the pin as location text
+    ]);
 
     const comparison = matchProducts(blinkitData, zeptoData, swiggyData);
     res.json(comparison);

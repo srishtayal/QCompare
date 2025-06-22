@@ -51,7 +51,7 @@ await page.waitForSelector('[data-testid="search-page-header-search-bar-input"]'
 await page.type('[data-testid="search-page-header-search-bar-input"]', query);
 await page.keyboard.press('Enter');
 
-await page.waitForSelector('div._179Mx',{visible:true});
+await page.waitForSelector('[data-testid="IM_SEARCH_PAGE_TITLE"]',{visible:true});
 await page.evaluate(() => {
   window.scrollBy(0, window.innerHeight); // small scroll to trigger image load
 });
@@ -63,6 +63,7 @@ await page.evaluate(async () => {
   }
 });
 await delay(200);
+  await page.setGeolocation({ latitude, longitude });
 
 const products = await page.evaluate(() => {
   function generateSwiggySearchURL(productName) {
@@ -80,13 +81,14 @@ const products = await page.evaluate(() => {
       .map(img => img.src)
       .find(src => src.includes('media-assets.swiggy.com') && !src.includes('instamart-media-assets')) || null;
     const quantity = item.querySelector('.FqnWn')?.innerText || '';
-    const delivery = item.querySelector('.sc-aXZVg.cwTvVs.GOJ8s')?.innerText || '';
+    const deliveryLabel = item.querySelector('[aria-label^="Delivery in"]')?.getAttribute('aria-label') || '';
+const deliveryTime = deliveryLabel.match(/\d+/)?.[0] || '';
     const price = item.querySelector('[data-testid="item-offer-price"]')?.innerText || '';
     const link=generateSwiggySearchURL(name);
     const isSoldOut = !!item.querySelector('[data-testid="sold-out"]');
     const availability = isSoldOut ? 'Sold Out' : 'Available';
 
-    return { name, productImg, quantity, delivery, price,link, availability };
+    return { name, productImg, quantity, deliveryTime, price,link, availability };
   });
 });
 

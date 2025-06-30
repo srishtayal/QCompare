@@ -125,7 +125,7 @@ Create `.env` files (if required) for secrets like future APIs, Redis, or DB int
 ## 🤝 Contributors
 
 👩‍💻 [Srishti Tayal](https://github.com/srishtayal)
-👨‍💻 [Aditya Raj Singh](https://github.com/adityars07)
+👨‍💻 [Aditya Raj Singh](https://github.com/adityars06)
 
 ---
 
